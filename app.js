@@ -1,4 +1,5 @@
 //jshint esversion:6
+require('dotenv').config() //ocultar the key const secret="esteesnuetrosecretoid."
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -7,6 +8,8 @@ const mongoose = require("mongoose");
 const encrypt =require("mongoose-encryption")
 
 const app=express();
+
+console.log(process.env.SECRET_KEY);
 
 app.use(express.static("public"));
 app.set('view engine','ejs');
@@ -22,8 +25,8 @@ const userSchema= new mongoose.Schema({
   password: String
 });
 
-const secret="esteesnuetrosecretoid."; // like a key to encript
-userSchema.plugin(encrypt,{secret: secret, encryptedFields: ["password"]}); //use key and only encryp fields "password"
+//const secret="esteesnuetrosecretoid."; // like a key to encript
+userSchema.plugin(encrypt,{secret: process.env.SECRET_KEY, encryptedFields: ["password"]}); //use key and only encryp fields "password"
 
 
 

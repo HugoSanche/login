@@ -55,10 +55,6 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
-
-
-
 app.get("/",function(req,res){
   res.render("home");
 })
@@ -69,49 +65,54 @@ app.get("/register",function(req,res){
   res.render("register");
 })
 
-app.post("/register",function(req, res){
-  // bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-  //   newUser= new User({
-  //     email: req.body.username,
-  //     password: hash
-  //   })
-  //
-  //   //when save field automatically the field password was encryted
-  //   newUser.save(function(err){ //saving new register
-  //     if(!err){
-  //       res.render("secrets");
-  //     }
-  //       else{
-  //         res.render("Something fail "+err);
-  //       }
-  //   });
-  // });
+app.get("/secrets", function(req, res){
+  //check if the autnetication was sussefully
+  if (req.isAuthenticated()){
+    res.render("secrets");
+  }
+  else{
+      res.redirect("/login");
+  }
 });
 
+app.get("/logout",function(req, res){
+  req.logout(function(err) {
+   if (err) { return next(err); }
+   res.redirect('/');
+ });
+})
+
+app.post("/register",function(req, res){
+
+  User.register({username: req.body.username},req.body.password, function(err){
+    if (err){
+      console.log(err);
+      res.redirect("/register");
+    }
+    else{
+      passport.authenticate("local")(req, res, function(){
+        res.redirect("/secrets");
+      });
+    }
+  });
+});
+
+//remerber the cookies will be deleted after close de navegator
 app.post("/login",function(req, res){
-  // const email= req.body.username;
-  // const password= req.body.password;
-  // //when find a filed automatically the field "password" was decrept
-  // User.findOne({email},function(err,foundUser){
-  //
-  //   if (err){
-  //     console.log("ups found a error  "+err);
-  //   }
-  //   else {
-  //       if (foundUser)
-  //         {
-  //           bcrypt.compare(password, foundUser.password, function(err, result) {
-  //           if(result == true)
-  //             {
-  //             res.render("secrets");
-  //             }
-  //           else{
-  //             console.log("Error de usuario o contraseña");
-  //             }
-  //           });
-  //         }
-  //       }
-  // });
+  const user = new User ({
+    username:req.body.username,
+    password:req.body.password
+  });
+  req.login(user, function(err){
+    if (err){
+      console.log(err);
+    }
+    else{
+      passport.authenticate("local")(req, res,function() {
+        res.redirect("/secrets");
+      });
+    }
+  })
 
 });
 

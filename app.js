@@ -46,7 +46,8 @@ mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser: true});
 const userSchema= new mongoose.Schema({
   googleId:String,
   email: String,
-  password: String
+  password: String,
+  secret:String
 });
 
 //const secret="esteesnuetrosecretoid."; // like a key to encript
@@ -111,13 +112,46 @@ app.get("/register",function(req,res){
 })
 
 app.get("/secrets", function(req, res){
+//the purpose es showing all secrets from all users.
+User.find({"secret":{$ne:null}}, function(err, users){
+  if(err){
+    console.log("Found a Error "+err);
+  }else{
+    if (users){
+      res.render("secrets",{userSecrets:users}); //past secrets for all user to the variable userSchema
+    }
+  }
+});
+});
+
+app.get("/submit", function(req, res){
   //check if the autnetication was sussefully
   if (req.isAuthenticated()){
-    res.render("secrets");
+    res.render("submit");
   }
   else{
       res.redirect("/login");
   }
+});
+
+app.post("/submit", function(req, res){
+  const submittedSecret=req.body.secret;
+  User.findById(req.user.id,function(err, user){
+    if(err){
+      console.log(err);
+    }else{
+      if (user){
+        user.secret=submittedSecret;
+        user.save(function(err){
+          if (err){
+            console.log(err);
+          }else{
+                res.redirect("/secrets");
+          }
+        });
+      }
+    }
+  });
 });
 
 app.get("/logout",function(req, res){
